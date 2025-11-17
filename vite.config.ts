@@ -18,7 +18,8 @@ export default defineConfig(({ mode }) => {
         alias: {
           // Fix: __dirname is not available in ES modules. Using '.' resolves to the current working directory, which is the project root when running Vite.
           // FIX: `__dirname` is not available in ES modules. Replaced with `process.cwd()` which correctly points to the project root.
-          '@': path.resolve(process.cwd(), '.'),
+          // FIX: `process.cwd()` causes a TypeScript error. Replaced with `.` which `path.resolve` uses as the current working directory.
+          '@': path.resolve('.'),
         }
       }
     };
