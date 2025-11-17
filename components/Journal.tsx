@@ -4,6 +4,7 @@ import Card from './common/Card';
 import InlineEditable from './common/InlineEditable';
 import ConfirmationModal from './common/ConfirmationModal';
 import EmptyState from './common/EmptyState';
+import Modal from './common/Modal';
 
 const JournalIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 15.25a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15.25V8.25A2.25 2.25 0 015.25 6h13.5A2.25 2.25 0 0121 8.25v7zM6 18v2m12-2v2" /><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6.75h.008v.008h-.008v-.008zM12 6.75h.008v.008h-.008v-.008zM8.25 6.75h.008v.008h-.008v-.008z" /></svg>;
 
@@ -21,24 +22,24 @@ const Journal: React.FC<JournalProps> = ({ entries, setEntries, editableContent,
   const [content, setContent] = useState('');
   const [isDirty, setIsDirty] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isAddModalOpen, setAddModalOpen] = useState(false);
+  const [newEntryDate, setNewEntryDate] = useState(todayISO);
   
   const sortedEntries = useMemo(() => [...entries].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), [entries]);
 
-  // Effect to ensure today's entry exists and an entry is active
+  // Effect to manage the active entry
   useEffect(() => {
-    let entryForToday = entries.find(e => e.date === todayISO);
-    let currentEntries = entries;
-    if (!entryForToday) {
+    // On initial load, if there are no entries, create one for today and make it active.
+    if (entries.length === 0) {
       const newEntry: JournalEntry = { id: Date.now().toString(), date: todayISO, content: '' };
-      currentEntries = [newEntry, ...entries];
-      setEntries(currentEntries);
+      setEntries([newEntry]);
       setActiveEntryId(newEntry.id);
-    } else if (!activeEntryId && entries.length > 0) {
-      // If no active entry is set, default to the most recent one
+    } else if (!activeEntryId) {
+      // If an entry isn't active (e.g., after deleting one), select the most recent.
       setActiveEntryId(sortedEntries[0].id);
     }
-     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entries, todayISO, setEntries]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entries, activeEntryId, setEntries]);
 
 
   const activeEntry = useMemo(() => entries.find(entry => entry.id === activeEntryId), [entries, activeEntryId]);
@@ -73,6 +74,19 @@ const Journal: React.FC<JournalProps> = ({ entries, setEntries, editableContent,
     setEntries(prev => prev.filter(e => e.id !== activeEntry.id));
     setActiveEntryId(null); // Deselect the deleted entry
   };
+  
+  const handleAddEntry = (e: React.FormEvent) => {
+    e.preventDefault();
+    const existingEntry = entries.find(entry => entry.date === newEntryDate);
+    if (existingEntry) {
+        setActiveEntryId(existingEntry.id);
+    } else {
+        const newEntry: JournalEntry = { id: Date.now().toString(), date: newEntryDate, content: '' };
+        setEntries(prev => [newEntry, ...prev]);
+        setActiveEntryId(newEntry.id);
+    }
+    setAddModalOpen(false);
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -94,9 +108,28 @@ const Journal: React.FC<JournalProps> = ({ entries, setEntries, editableContent,
         message="Are you sure you want to delete this entry? This action cannot be undone."
         confirmText="Delete"
       />
+      <Modal isOpen={isAddModalOpen} onClose={() => setAddModalOpen(false)} title="Create New Entry">
+        <form onSubmit={handleAddEntry}>
+            <label htmlFor="entry-date" className="block text-sm font-medium text-[var(--text-primary)] mb-2">Select a date:</label>
+            <input 
+                type="date"
+                id="entry-date"
+                value={newEntryDate}
+                onChange={e => setNewEntryDate(e.target.value)}
+                className="w-full bg-[var(--bg-interactive)]/50 p-2 rounded-md border border-[var(--border-secondary)]"
+            />
+            <div className="flex justify-end mt-4">
+                <button type="submit" className="bg-[var(--accent-primary-hover)] hover:bg-[var(--accent-primary)] text-white font-bold py-2 px-4 rounded-md transition-colors">Create or View Entry</button>
+            </div>
+        </form>
+      </Modal>
+
       <div className="flex flex-col md:flex-row h-full gap-6">
         <Card className="w-full md:w-1/3 flex-shrink-0 flex flex-col">
-          <InlineEditable as="h2" initialValue={editableContent.journalTitle} onSave={handleContentSave('journalTitle')} className="text-xl font-serif text-[var(--text-header)] mb-4" />
+          <div className="flex justify-between items-center mb-4">
+            <InlineEditable as="h2" initialValue={editableContent.journalTitle} onSave={handleContentSave('journalTitle')} className="text-xl font-serif text-[var(--text-header)]" />
+            <button onClick={() => setAddModalOpen(true)} className="bg-[var(--accent-primary-hover)] hover:bg-[var(--accent-primary)] text-white font-bold py-1 px-3 rounded-md transition-colors text-sm">+ New Entry</button>
+          </div>
           {sortedEntries.length > 0 ? (
             <ul className="space-y-2 overflow-y-auto">
               {sortedEntries.map(entry => (
@@ -133,7 +166,7 @@ const Journal: React.FC<JournalProps> = ({ entries, setEntries, editableContent,
             <EmptyState 
                 icon={<JournalIcon />}
                 title="Your Journal"
-                message="This is your space for daily reflection. Your first entry for today has been created. Select it from the list to begin writing."
+                message="This is your space for daily reflection. Select an entry from the list or create a new one to begin writing."
             />
           )}
         </Card>
