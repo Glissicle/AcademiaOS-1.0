@@ -1,10 +1,18 @@
 import { GoogleGenAI } from "@google/genai";
 
-if (!process.env.API_KEY) {
-  console.warn("API_KEY environment variable not set. Gemini API calls will fail.");
-}
+// Lazily initialize the AI client to avoid crashes on startup if API key is missing.
+let ai: GoogleGenAI | null = null;
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+const getAiClient = () => {
+    if (!ai) {
+        if (!process.env.API_KEY) {
+            // This error will be caught by the calling function's try/catch block
+            throw new Error("API_KEY environment variable not set. Please configure it to use the Learn feature.");
+        }
+        ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    }
+    return ai;
+};
 
 const parseGeminiResponse = (responseText: string) => {
   let jsonString = responseText.trim();
@@ -35,16 +43,23 @@ const parseGeminiResponse = (responseText: string) => {
 };
 
 const handleApiError = (error: unknown) => {
-    console.error("Error calling Gemini API:", error);
-    if (error instanceof Error && error.message.includes('API key not valid')) {
-       throw new Error("Invalid API Key. Please check your configuration.");
+    console.error("Error with Gemini API:", error);
+    if (error instanceof Error) {
+        // Pass specific, helpful messages to the UI
+        if (error.message.includes('API key not valid')) {
+           throw new Error("Invalid API Key. Please check your configuration.");
+        }
+        // Let other specific errors (like missing API key) pass through
+        throw error;
     }
-    throw new Error("Failed to generate content. Please check your API key and network connection.");
+    // Fallback for non-Error objects
+    throw new Error("An unknown error occurred while communicating with the Gemini API.");
 };
 
 export const generateLearningContent = async (topic: string) => {
   try {
-    const response = await ai.models.generateContent({
+    const aiClient = getAiClient();
+    const response = await aiClient.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `You are a helpful research assistant. Find relevant, high-quality articles and YouTube videos about the user's topic: "${topic}". Your response must be a valid JSON object only, without any surrounding text or markdown formatting. The JSON object should have two top-level keys: "articles" and "videos". The "articles" key should be an array of objects, where each object has "title" (string), "link" (string), and "snippet" (string). The "videos" key should be an array of objects, where each object has "title" (string), "link" (string), and "description" (string). If you cannot find relevant results, return an empty array for the corresponding key.`,
         config: {
@@ -61,7 +76,8 @@ export const generateLearningContent = async (topic: string) => {
 
 export const generateCurrentEventsContent = async () => {
   try {
-    const response = await ai.models.generateContent({
+    const aiClient = getAiClient();
+    const response = await aiClient.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `You are a helpful news aggregator. Find recent, high-quality articles and YouTube videos about current world events, technology, science, and culture. Your response must be a valid JSON object only, without any surrounding text or markdown formatting. The JSON object should have two top-level keys: "articles" and "videos". The "articles" key should be an array of objects, where each object has "title" (string), "link" (string), and "snippet" (string). The "videos" key should be an array of objects, where each object has "title" (string), "link" (string), and "description" (string). Ensure a diverse range of topics.`,
         config: {
