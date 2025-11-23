@@ -2,7 +2,6 @@ import React from 'react';
 import type { Todo, Goal, Exam, View, EditableContent } from '../types';
 import Card from './common/Card';
 import ProgressBar from './common/ProgressBar';
-import InlineEditable from './common/InlineEditable';
 
 interface DashboardProps {
   userName: string;
@@ -36,26 +35,17 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, todos, setTodos, goals,
     setTodos(todos.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
   };
 
-  const handleContentSave = (key: keyof EditableContent) => (newValue: string) => {
-    setEditableContent(prev => ({ ...prev, [key]: newValue }));
-  };
-
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-4xl font-serif text-[var(--text-header)] mb-2">Welcome back, {userName}</h1>
-        <InlineEditable
-            as="p"
-            initialValue={editableContent.dashboardGreeting}
-            onSave={handleContentSave('dashboardGreeting')}
-            className="text-[var(--text-secondary)]"
-        />
+        <p className="text-[var(--text-secondary)]">{editableContent.dashboardGreeting}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-1 space-y-4">
-          <InlineEditable as="h2" initialValue={editableContent.dashboardQuickActionsTitle} onSave={handleContentSave('dashboardQuickActionsTitle')} className="text-xl font-serif text-[var(--text-header)]" />
+          <h2 className="text-xl font-serif text-[var(--text-header)]">{editableContent.dashboardQuickActionsTitle}</h2>
           <div className="flex flex-col space-y-2">
             <button onClick={() => setView('Pomodoro')} className="w-full text-left p-3 rounded-md bg-[var(--bg-interactive)]/50 hover:bg-[var(--bg-interactive)] transition-colors">Start Focus Session</button>
             <button onClick={() => setView('Journal')} className="w-full text-left p-3 rounded-md bg-[var(--bg-interactive)]/50 hover:bg-[var(--bg-interactive)] transition-colors">New Journal Entry</button>
@@ -64,7 +54,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, todos, setTodos, goals,
         </Card>
 
         <Card className="lg:col-span-2 space-y-4">
-          <InlineEditable as="h2" initialValue={editableContent.dashboardDeadlinesTitle} onSave={handleContentSave('dashboardDeadlinesTitle')} className="text-xl font-serif text-[var(--text-header)]" />
+          <h2 className="text-xl font-serif text-[var(--text-header)]">{editableContent.dashboardDeadlinesTitle}</h2>
           {upcomingExams.length > 0 ? (
             <ul className="space-y-2">
               {upcomingExams.map(exam => (
@@ -80,7 +70,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, todos, setTodos, goals,
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="space-y-4">
-          <InlineEditable as="h2" initialValue={editableContent.dashboardFocusTitle} onSave={handleContentSave('dashboardFocusTitle')} className="text-xl font-serif text-[var(--text-header)]" />
+          <h2 className="text-xl font-serif text-[var(--text-header)]">{editableContent.dashboardFocusTitle}</h2>
           {incompleteTodos.length > 0 ? (
             <ul className="space-y-2">
               {incompleteTodos.map(todo => (
@@ -99,7 +89,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userName, todos, setTodos, goals,
         </Card>
 
         <Card className="space-y-4">
-          <InlineEditable as="h2" initialValue={editableContent.dashboardGoalsTitle} onSave={handleContentSave('dashboardGoalsTitle')} className="text-xl font-serif text-[var(--text-header)]" />
+          <h2 className="text-xl font-serif text-[var(--text-header)]">{editableContent.dashboardGoalsTitle}</h2>
           {goalsInProgress.length > 0 ? (
             <ul className="space-y-4">
               {goalsInProgress.map(goal => (

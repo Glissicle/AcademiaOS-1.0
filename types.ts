@@ -1,6 +1,12 @@
 export type View = 'Dashboard' | 'Study' | 'Writing' | 'Books' | 'Learn' | 'Pomodoro' | 'Journal' | 'Me' | 'Music';
 export type Theme = 'dark-academia' | 'light-academia' | 'midnight-dusk' | 'evergreen' | 'custom';
 
+// FIX: Add User interface for authentication context.
+export interface User {
+  uid: string;
+  email: string;
+}
+
 export interface Todo {
   id: string;
   text: string;
@@ -50,6 +56,12 @@ export interface JournalEntry {
   content: string;
 }
 
+export interface PlaylistItem {
+  id: string;
+  title: string;
+  spotifyUri: string;
+}
+
 export interface MeData {
   values: string;
   vision: string;
@@ -93,4 +105,21 @@ export interface EditableContent {
   meAchievementsTitle: string;
   musicTitle: string;
   musicSubtitle: string;
+}
+
+// FIX: Add AppData interface to consolidate all application data types.
+export interface AppData {
+  todos: Todo[];
+  goals: Goal[];
+  exams: Exam[];
+  habits: Habit[];
+  writings: Writing[];
+  books: Book[];
+  journalEntries: JournalEntry[];
+  meData: MeData;
+  playlist: PlaylistItem[];
+  spotifyUri: string;
+  editableContent: EditableContent;
+  theme: Theme;
+  customColors: CustomThemeColors;
 }

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { Writing, EditableContent } from '../types';
 import Card from './common/Card';
-import InlineEditable from './common/InlineEditable';
 import EmptyState from './common/EmptyState';
 
 const WritingIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.586a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>;
@@ -69,16 +68,12 @@ const WritingComponent: React.FC<WritingComponentProps> = ({ writings, setWritin
   };
 
   const sortedWritings = [...writings].sort((a, b) => b.lastModified - a.lastModified);
-  
-  const handleContentSave = (key: keyof EditableContent) => (newValue: string) => {
-    setEditableContent(prev => ({ ...prev, [key]: newValue }));
-  };
 
   return (
     <div className="flex flex-col md:flex-row h-full gap-6">
       <Card className="w-full md:w-1/3 flex-shrink-0 flex flex-col">
         <div className="flex justify-between items-center mb-4">
-          <InlineEditable as="h2" initialValue={editableContent.writingTitle} onSave={handleContentSave('writingTitle')} className="text-xl font-serif text-[var(--text-header)]" />
+          <h2 className="text-xl font-serif text-[var(--text-header)]">{editableContent.writingTitle}</h2>
           <button onClick={createNew} className="text-[var(--accent-secondary)] hover:text-[var(--accent-secondary-hover)] transition-colors text-2xl font-bold">+</button>
         </div>
         {sortedWritings.length > 0 ? (

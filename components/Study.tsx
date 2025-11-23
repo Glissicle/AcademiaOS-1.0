@@ -3,7 +3,6 @@ import type { Todo, Goal, Exam, Habit, EditableContent } from '../types';
 import Card from './common/Card';
 import ProgressBar from './common/ProgressBar';
 import Modal from './common/Modal';
-import InlineEditable from './common/InlineEditable';
 import EmptyState from './common/EmptyState';
 
 type StudyTab = 'Todos' | 'Goals' | 'Exams' | 'Habits';
@@ -132,10 +131,6 @@ const Study: React.FC<StudyProps> = ({ todos, setTodos, goals, setGoals, exams, 
   };
   
   const sortedExams = useMemo(() => [...exams].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()), [exams]);
-
-  const handleContentSave = (key: keyof EditableContent) => (newValue: string) => {
-    setEditableContent(prev => ({ ...prev, [key]: newValue }));
-  };
 
   // --- RENDER LOGIC ---
   const renderContent = () => {
@@ -298,12 +293,7 @@ const Study: React.FC<StudyProps> = ({ todos, setTodos, goals, setGoals, exams, 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-         <InlineEditable 
-            as="h1" 
-            initialValue={editableContent.studyHubTitle} 
-            onSave={handleContentSave('studyHubTitle')} 
-            className="text-4xl font-serif text-[var(--text-header)]"
-         />
+         <h1 className="text-4xl font-serif text-[var(--text-header)]">{editableContent.studyHubTitle}</h1>
          {['Exams', 'Habits'].includes(activeTab) && (
             <button onClick={() => openModal('add')} className="bg-[var(--accent-primary-hover)] hover:bg-[var(--accent-primary)] text-white font-bold py-2 px-4 rounded-md transition-colors">
                 + Add {activeTab.slice(0,-1)}

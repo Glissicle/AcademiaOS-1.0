@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import type { View, Theme, CustomThemeColors, EditableContent, Todo, Goal, Exam, Habit, Writing, Book, JournalEntry, MeData, PlaylistItem } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import type { Todo, Goal, Exam, Habit, Writing, Book, JournalEntry, View, Theme, MeData, CustomThemeColors, EditableContent } from './types';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import Study from './components/Study';
@@ -52,38 +52,38 @@ const DEFAULT_EDITABLE_CONTENT: EditableContent = {
 
 
 const App: React.FC = () => {
-  const [view, setView] = useState<View>('Dashboard');
-  const [theme, setTheme] = useLocalStorage<Theme>('theme', 'dark-academia');
-  const [customColors, setCustomColors] = useLocalStorage<CustomThemeColors>('custom-colors', DEFAULT_CUSTOM_THEME);
-  const userName = "Mashael";
-
   const [todos, setTodos] = useLocalStorage<Todo[]>('todos', []);
   const [goals, setGoals] = useLocalStorage<Goal[]>('goals', []);
   const [exams, setExams] = useLocalStorage<Exam[]>('exams', []);
   const [habits, setHabits] = useLocalStorage<Habit[]>('habits', []);
   const [writings, setWritings] = useLocalStorage<Writing[]>('writings', []);
   const [books, setBooks] = useLocalStorage<Book[]>('books', []);
-  const [journalEntries, setJournalEntries] = useLocalStorage<JournalEntry[]>('journal_entries', []);
-  const [meData, setMeData] = useLocalStorage<MeData>('me_data', { values: '', vision: '', strengths: '', achievements: '' });
-  const [spotifyUri, setSpotifyUri] = useLocalStorage<string>('spotify_uri', '');
-  const [editableContent, setEditableContent] = useLocalStorage<EditableContent>('editable-content', DEFAULT_EDITABLE_CONTENT);
+  const [journalEntries, setJournalEntries] = useLocalStorage<JournalEntry[]>('journalEntries', []);
+  const [meData, setMeData] = useLocalStorage<MeData>('meData', { values: '', vision: '', strengths: '', achievements: '' });
+  const [spotifyUri, setSpotifyUri] = useLocalStorage<string>('spotifyUri', '');
+  const [playlist, setPlaylist] = useLocalStorage<PlaylistItem[]>('playlist', []);
+  const [editableContent, setEditableContent] = useLocalStorage<EditableContent>('editableContent', DEFAULT_EDITABLE_CONTENT);
+  const [theme, setTheme] = useLocalStorage<Theme>('theme', 'dark-academia');
+  const [customColors, setCustomColors] = useLocalStorage<CustomThemeColors>('customColors', DEFAULT_CUSTOM_THEME);
+  
+  const [view, setView] = useState<View>('Dashboard');
+  const userName = "Mashael";
 
   useEffect(() => {
     const root = document.documentElement;
     if (theme === 'custom') {
       root.removeAttribute('data-theme');
       for (const [key, value] of Object.entries(customColors)) {
-        root.style.setProperty(key, value);
+        root.style.setProperty(key, value as string);
       }
     } else {
-      // Clear custom styles
-      for (const key of Object.keys(DEFAULT_CUSTOM_THEME)) {
+       const defaultKeys = ['--bg-primary', '--bg-secondary', '--bg-interactive', '--border-primary', '--border-secondary', '--text-primary', '--text-secondary', '--text-muted', '--text-header', '--accent-primary', '--accent-primary-hover', '--accent-secondary'];
+      for (const key of defaultKeys) {
         root.style.removeProperty(key);
       }
       root.setAttribute('data-theme', theme);
     }
   }, [theme, customColors]);
-
 
   const renderView = () => {
     switch (view) {
@@ -113,7 +113,14 @@ const App: React.FC = () => {
       case 'Me':
         return <Me meData={meData} setMeData={setMeData} editableContent={editableContent} setEditableContent={setEditableContent} />;
       case 'Music':
-        return <Music spotifyUri={spotifyUri} setSpotifyUri={setSpotifyUri} editableContent={editableContent} setEditableContent={setEditableContent} />;
+        return <Music 
+                    spotifyUri={spotifyUri} 
+                    setSpotifyUri={setSpotifyUri} 
+                    playlist={playlist}
+                    setPlaylist={setPlaylist}
+                    editableContent={editableContent} 
+                    setEditableContent={setEditableContent} 
+                />;
       default:
         return <Dashboard 
                   userName={userName} 
