@@ -9,6 +9,21 @@ interface ThemeCustomizerProps {
   onSave: (newColors: CustomThemeColors) => void;
 }
 
+// Extracted ColorInput component
+const ColorInput: React.FC<{ label: string; colorKey: keyof CustomThemeColors; value: string; onChange: (key: keyof CustomThemeColors, value: string) => void }> = ({ label, colorKey, value, onChange }) => (
+    <div className="flex items-center justify-between">
+      <label htmlFor={colorKey} className="text-[var(--text-primary)]">{label}</label>
+      <input
+        type="color"
+        id={colorKey}
+        name={colorKey}
+        value={value}
+        onChange={(e) => onChange(colorKey, e.target.value)}
+        className="w-24 h-8 p-1 bg-[var(--bg-interactive)] border border-[var(--border-secondary)] rounded cursor-pointer"
+      />
+    </div>
+);
+
 const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ isOpen, onClose, colors, onSave }) => {
   const [currentColors, setCurrentColors] = useState(colors);
 
@@ -20,20 +35,6 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ isOpen, onClose, colo
     onSave(currentColors);
     onClose();
   };
-
-  const ColorInput: React.FC<{ label: string; colorKey: keyof CustomThemeColors }> = ({ label, colorKey }) => (
-    <div className="flex items-center justify-between">
-      <label htmlFor={colorKey} className="text-[var(--text-primary)]">{label}</label>
-      <input
-        type="color"
-        id={colorKey}
-        name={colorKey}
-        value={currentColors[colorKey]}
-        onChange={(e) => handleChange(colorKey, e.target.value)}
-        className="w-24 h-8 p-1 bg-[var(--bg-interactive)] border border-[var(--border-secondary)] rounded cursor-pointer"
-      />
-    </div>
-  );
 
   const colorConfig: {label: string; key: keyof CustomThemeColors}[] = [
     { label: 'Primary Background', key: '--bg-primary' },
@@ -53,7 +54,15 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ isOpen, onClose, colo
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Customize Your Theme">
       <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-        {colorConfig.map(c => <ColorInput key={c.key} label={c.label} colorKey={c.key} />)}
+        {colorConfig.map(c => (
+            <ColorInput 
+                key={c.key} 
+                label={c.label} 
+                colorKey={c.key} 
+                value={currentColors[c.key]}
+                onChange={handleChange}
+            />
+        ))}
       </div>
       <div className="flex justify-end pt-4 mt-4 border-t border-[var(--border-primary)]">
         <button onClick={handleSave} className="bg-[var(--accent-primary-hover)] hover:bg-[var(--accent-primary)] text-white font-bold py-2 px-4 rounded-md transition-colors">

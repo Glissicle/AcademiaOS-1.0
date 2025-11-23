@@ -10,6 +10,26 @@ interface MeProps {
   setEditableContent: React.Dispatch<React.SetStateAction<EditableContent>>;
 }
 
+// Extracted Section component to prevent re-creation on render
+interface SectionProps {
+  title: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}
+
+const Section: React.FC<SectionProps> = ({ title, value, onChange, placeholder }) => (
+  <Card>
+    <h2 className="text-2xl font-serif text-[var(--text-header)] mb-4">{title}</h2>
+    <textarea
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      className="w-full h-40 bg-[var(--bg-interactive-alpha)] p-3 rounded-md text-[var(--text-primary)] resize-y border border-[var(--border-primary)] focus:ring-[var(--accent-secondary)] focus:border-[var(--accent-secondary)]"
+      placeholder={placeholder}
+    />
+  </Card>
+);
+
 const Me: React.FC<MeProps> = ({ meData, setMeData, editableContent, setEditableContent }) => {
   const [localData, setLocalData] = useState<MeData>(meData);
   const [isClearModalOpen, setClearModalOpen] = useState(false);
@@ -39,18 +59,6 @@ const Me: React.FC<MeProps> = ({ meData, setMeData, editableContent, setEditable
     setMeData(clearedData);
   };
 
-  const Section: React.FC<{ title: string; field: keyof MeData; placeholder: string; }> = ({ title, field, placeholder }) => (
-    <Card>
-      <h2 className="text-2xl font-serif text-[var(--text-header)] mb-4">{title}</h2>
-      <textarea
-        value={localData[field]}
-        onChange={e => handleInputChange(field, e.target.value)}
-        className="w-full h-40 bg-[var(--bg-interactive-alpha)] p-3 rounded-md text-[var(--text-primary)] resize-y border border-[var(--border-primary)] focus:ring-[var(--accent-secondary)] focus:border-[var(--accent-secondary)]"
-        placeholder={placeholder}
-      />
-    </Card>
-  );
-
   return (
     <>
     <ConfirmationModal
@@ -74,10 +82,30 @@ const Me: React.FC<MeProps> = ({ meData, setMeData, editableContent, setEditable
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Section field="values" title={editableContent.meValuesTitle} placeholder="What principles guide you? (e.g., Curiosity, Integrity, Kindness...)" />
-        <Section field="vision" title={editableContent.meVisionTitle} placeholder="What is your long-term vision for yourself? What impact do you want to make?" />
-        <Section field="strengths" title={editableContent.meStrengthsTitle} placeholder="What are you great at? Where do you have room to grow?" />
-        <Section field="achievements" title={editableContent.meAchievementsTitle} placeholder="What are you proud of? Big or small, log your wins here." />
+        <Section 
+            title={editableContent.meValuesTitle} 
+            value={localData.values} 
+            onChange={(val) => handleInputChange('values', val)} 
+            placeholder="What principles guide you? (e.g., Curiosity, Integrity, Kindness...)" 
+        />
+        <Section 
+            title={editableContent.meVisionTitle} 
+            value={localData.vision} 
+            onChange={(val) => handleInputChange('vision', val)} 
+            placeholder="What is your long-term vision for yourself? What impact do you want to make?" 
+        />
+        <Section 
+            title={editableContent.meStrengthsTitle} 
+            value={localData.strengths} 
+            onChange={(val) => handleInputChange('strengths', val)} 
+            placeholder="What are you great at? Where do you have room to grow?" 
+        />
+        <Section 
+            title={editableContent.meAchievementsTitle} 
+            value={localData.achievements} 
+            onChange={(val) => handleInputChange('achievements', val)} 
+            placeholder="What are you proud of? Big or small, log your wins here." 
+        />
       </div>
       
        <div className="pt-4 mt-4 border-t border-[var(--border-primary)]">

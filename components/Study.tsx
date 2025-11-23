@@ -12,6 +12,78 @@ const GoalIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-full
 const ExamIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>;
 const HabitIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.667 0l3.182-3.182m0-4.991v4.99" /></svg>;
 
+const EditIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L15.232 5.232z" /></svg>;
+const DeleteIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>;
+const AddIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>;
+
+// Extracted ModalForm component
+interface ModalFormProps {
+    onSave: (data: any) => void;
+    onClose: () => void;
+    activeTab: StudyTab;
+    modalMode: 'add' | 'edit';
+    currentItem: Todo | Goal | Exam | Habit | null;
+    todayISO: string;
+}
+
+const ModalForm: React.FC<ModalFormProps> = ({ onSave, onClose, activeTab, modalMode, currentItem, todayISO }) => {
+    const [formData, setFormData] = useState(() => {
+        if (modalMode === 'edit' && currentItem) return {...currentItem};
+        // Only Exams and Habits will use 'add' mode in modal now
+        switch(activeTab) {
+            case 'Todos': return {text: ''};
+            case 'Goals': return {title: '', target: 100, current: 0, unit: ''};
+            case 'Exams': return {subject: '', date: todayISO };
+            case 'Habits': return {name: '', frequency: 'daily'};
+            default: return {};
+        }
+    });
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setFormData({...formData, [e.target.name]: e.target.value});
+    
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSave(formData);
+        onClose();
+    }
+    
+    const inputClasses = "w-full bg-[var(--bg-interactive)]/50 p-2 rounded-md border border-[var(--border-secondary)]";
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            {activeTab === 'Todos' && (<input type="text" name="text" value={(formData as Partial<Todo>).text} onChange={handleChange} placeholder="Task description" required className={inputClasses}/>)}
+            {activeTab === 'Goals' && (
+                <>
+                    <input type="text" name="title" value={(formData as Partial<Goal>).title} onChange={handleChange} placeholder="Goal Title" required className={inputClasses}/>
+                    <div className="grid grid-cols-3 gap-2">
+                        <input type="number" name="current" value={(formData as Partial<Goal>).current} onChange={handleChange} placeholder="Current" required className={inputClasses}/>
+                        <input type="number" name="target" value={(formData as Partial<Goal>).target} onChange={handleChange} placeholder="Target" required className={inputClasses}/>
+                        <input type="text" name="unit" value={(formData as Partial<Goal>).unit} onChange={handleChange} placeholder="Unit (e.g. pages)" className={inputClasses}/>
+                    </div>
+                </>
+            )}
+            {activeTab === 'Exams' && (
+                <>
+                    <input type="text" name="subject" value={(formData as Partial<Exam>).subject} onChange={handleChange} placeholder="Subject" required className={inputClasses}/>
+                    <input type="date" name="date" value={(formData as Partial<Exam>).date} onChange={handleChange} required className={inputClasses}/>
+                </>
+            )}
+            {activeTab === 'Habits' && (
+                <>
+                    <input type="text" name="name" value={(formData as Partial<Habit>).name} onChange={handleChange} placeholder="Habit Name" required className={inputClasses}/>
+                    <select name="frequency" value={(formData as Partial<Habit>).frequency} onChange={handleChange} className={inputClasses}>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                    </select>
+                </>
+            )}
+            <div className="flex justify-end pt-2">
+                <button type="submit" className="bg-[var(--accent-primary-hover)] hover:bg-[var(--accent-primary)] text-white font-bold py-2 px-4 rounded-md transition-colors">Save</button>
+            </div>
+        </form>
+    );
+};
+
 interface StudyProps {
   todos: Todo[];
   setTodos: React.Dispatch<React.SetStateAction<Todo[]>>;
@@ -24,11 +96,6 @@ interface StudyProps {
   editableContent: EditableContent;
   setEditableContent: React.Dispatch<React.SetStateAction<EditableContent>>;
 }
-
-const EditIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L15.232 5.232z" /></svg>;
-const DeleteIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>;
-const AddIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>;
-
 
 const Study: React.FC<StudyProps> = ({ todos, setTodos, goals, setGoals, exams, setExams, habits, setHabits, editableContent, setEditableContent }) => {
   const [activeTab, setActiveTab] = useState<StudyTab>('Todos');
@@ -222,61 +289,6 @@ const Study: React.FC<StudyProps> = ({ todos, setTodos, goals, setGoals, exams, 
       default: return null;
     }
   };
-
-  const ModalForm: React.FC<{onSave: (data: any) => void;}> = ({onSave}) => {
-    const [formData, setFormData] = useState(() => {
-      if (modalMode === 'edit' && currentItem) return {...currentItem};
-      // Only Exams and Habits will use 'add' mode in modal now
-      switch(activeTab) {
-        case 'Todos': return {text: ''};
-        case 'Goals': return {title: '', target: 100, current: 0, unit: ''};
-        case 'Exams': return {subject: '', date: todayISO };
-        case 'Habits': return {name: '', frequency: 'daily'};
-        default: return {};
-      }
-    });
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setFormData({...formData, [e.target.name]: e.target.value});
-    const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      onSave(formData);
-      closeModal();
-    }
-    const inputClasses = "w-full bg-[var(--bg-interactive)]/50 p-2 rounded-md border border-[var(--border-secondary)]";
-
-    return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {activeTab === 'Todos' && (<input type="text" name="text" value={(formData as Partial<Todo>).text} onChange={handleChange} placeholder="Task description" required className={inputClasses}/>)}
-        {activeTab === 'Goals' && (
-          <>
-            <input type="text" name="title" value={(formData as Partial<Goal>).title} onChange={handleChange} placeholder="Goal Title" required className={inputClasses}/>
-            <div className="grid grid-cols-3 gap-2">
-              <input type="number" name="current" value={(formData as Partial<Goal>).current} onChange={handleChange} placeholder="Current" required className={inputClasses}/>
-              <input type="number" name="target" value={(formData as Partial<Goal>).target} onChange={handleChange} placeholder="Target" required className={inputClasses}/>
-              <input type="text" name="unit" value={(formData as Partial<Goal>).unit} onChange={handleChange} placeholder="Unit (e.g. pages)" className={inputClasses}/>
-            </div>
-          </>
-        )}
-        {activeTab === 'Exams' && (
-          <>
-            <input type="text" name="subject" value={(formData as Partial<Exam>).subject} onChange={handleChange} placeholder="Subject" required className={inputClasses}/>
-            <input type="date" name="date" value={(formData as Partial<Exam>).date} onChange={handleChange} required className={inputClasses}/>
-          </>
-        )}
-        {activeTab === 'Habits' && (
-          <>
-            <input type="text" name="name" value={(formData as Partial<Habit>).name} onChange={handleChange} placeholder="Habit Name" required className={inputClasses}/>
-            <select name="frequency" value={(formData as Partial<Habit>).frequency} onChange={handleChange} className={inputClasses}>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-            </select>
-          </>
-        )}
-        <div className="flex justify-end pt-2">
-          <button type="submit" className="bg-[var(--accent-primary-hover)] hover:bg-[var(--accent-primary)] text-white font-bold py-2 px-4 rounded-md transition-colors">Save</button>
-        </div>
-      </form>
-    );
-  };
   
   const handleSave = (formData: any) => {
     switch(activeTab) {
@@ -350,7 +362,14 @@ const Study: React.FC<StudyProps> = ({ todos, setTodos, goals, setGoals, exams, 
         {renderContent()}
       </Card>
       <Modal isOpen={isModalOpen} onClose={closeModal} title={modalTitle}>
-        <ModalForm onSave={handleSave} />
+        <ModalForm 
+            onSave={handleSave} 
+            onClose={closeModal} 
+            activeTab={activeTab} 
+            modalMode={modalMode} 
+            currentItem={currentItem} 
+            todayISO={todayISO} 
+        />
       </Modal>
     </div>
   );
